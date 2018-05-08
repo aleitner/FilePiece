@@ -13,6 +13,17 @@ type Chunk struct {
 	CurrentPos int64
 }
 
+// Create Chunk
+func NewChunk(file *os.File, offset int64, length int64) Chunk {
+	chunk := Chunk{}
+	chunk.File = file
+	chunk.Offset = offset
+	chunk.Length = length
+	chunk.CurrentPos = 0
+	return chunk
+}
+
+// Concurrently read from Chunk
 func (f Chunk) Read(b []byte) (n int, err error) {
 	if f.CurrentPos >= f.Length {
 		return 0, io.EOF
@@ -23,6 +34,7 @@ func (f Chunk) Read(b []byte) (n int, err error) {
 	return n, err
 }
 
+// Concurrently write to Chunk
 func (f Chunk) Write(b []byte) (n int, err error) {
 	if f.CurrentPos >= f.Length {
 		return 0, io.EOF
