@@ -30,7 +30,7 @@ func (f Chunk) Read(b []byte) (n int, err error) {
 	}
 
 	var readLen int64 = 0
-	if f.Length - f.CurrentPos > int64(len(b)) {
+	if f.Length-f.CurrentPos > int64(len(b)) {
 		readLen = int64(len(b))
 	} else {
 		readLen = f.Length - f.CurrentPos
@@ -48,7 +48,7 @@ func (f Chunk) Write(b []byte) (n int, err error) {
 	}
 
 	var writeLen int64 = 0
-	if f.Length - f.CurrentPos > int64(len(b)) {
+	if f.Length-f.CurrentPos > int64(len(b)) {
 		writeLen = int64(len(b))
 	} else {
 		writeLen = f.Length - f.CurrentPos
