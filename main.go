@@ -1,6 +1,7 @@
 package fpiece // import "github.com/aleitner/FilePiece"
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
@@ -29,7 +30,7 @@ func (f Chunk) Read(b []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	n, err = f.File.ReadAt(b[:f.Length], f.Offset+f.CurrentPos)
+	n, err = f.File.ReadAt(b[:len(b)], f.Offset+f.CurrentPos)
 	f.CurrentPos += int64(n)
 	return n, err
 }
@@ -40,7 +41,7 @@ func (f Chunk) Write(b []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	n, err = f.File.WriteAt(b[:f.Length], f.Offset+f.CurrentPos)
+	n, err = f.File.WriteAt(b[:len(b)], f.Offset+f.CurrentPos)
 	f.CurrentPos += int64(n)
 	return n, err
 }
