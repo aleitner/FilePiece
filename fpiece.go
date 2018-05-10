@@ -8,8 +8,8 @@ import (
 // Section of data to be concurrently read
 type Chunk struct {
 	File       *os.File
-	Offset     int64
-	Length     int64
+	Start      int64
+	Final      int64
 	CurrentPos int64
 }
 
@@ -17,44 +17,48 @@ type Chunk struct {
 func NewChunk(file *os.File, offset int64, length int64) Chunk {
 	chunk := Chunk{}
 	chunk.File = file
-	chunk.Offset = offset
-	chunk.Length = length
-	chunk.CurrentPos = 0
+	chunk.Start = offset
+	chunk.Final = length + offset
+	chunk.CurrentPos = offset
 	return chunk
+}
+
+func (f Chunk) Size() int64 {
+	return f.Final - f.Start
 }
 
 // Concurrently read from Chunk
 func (f Chunk) Read(b []byte) (n int, err error) {
-	if f.CurrentPos >= f.Length {
+	if f.CurrentPos >= f.Final {
 		return 0, io.EOF
 	}
 
 	var readLen int64 = 0
-	if f.Length-f.CurrentPos > int64(len(b)) {
+	if f.Final-f.CurrentPos > int64(len(b)) {
 		readLen = int64(len(b))
 	} else {
-		readLen = f.Length - f.CurrentPos
+		readLen = f.Final - f.CurrentPos
 	}
 
-	n, err = f.File.ReadAt(b[:readLen], f.Offset+f.CurrentPos)
+	n, err = f.File.ReadAt(b[:readLen], f.CurrentPos)
 	f.CurrentPos += int64(n)
 	return n, err
 }
 
 // Concurrently write to Chunk
 func (f Chunk) Write(b []byte) (n int, err error) {
-	if f.CurrentPos >= f.Length {
+	if f.CurrentPos >= f.Final {
 		return 0, io.EOF
 	}
 
 	var writeLen int64 = 0
-	if f.Length-f.CurrentPos > int64(len(b)) {
+	if f.Final-f.CurrentPos > int64(len(b)) {
 		writeLen = int64(len(b))
 	} else {
-		writeLen = f.Length - f.CurrentPos
+		writeLen = f.Final - f.CurrentPos
 	}
 
-	n, err = f.File.WriteAt(b[:writeLen], f.Offset+f.CurrentPos)
+	n, err = f.File.WriteAt(b[:writeLen], f.CurrentPos)
 	f.CurrentPos += int64(n)
 	return n, err
 }
