@@ -23,12 +23,12 @@ func NewChunk(file *os.File, offset int64, length int64) Chunk {
 	return chunk
 }
 
-func (f Chunk) Size() int64 {
+func (f *Chunk) Size() int64 {
 	return f.Final - f.Start
 }
 
 // Concurrently read from Chunk
-func (f Chunk) Read(b []byte) (n int, err error) {
+func (f *Chunk) Read(b []byte) (n int, err error) {
 	if f.CurrentPos >= f.Final {
 		return 0, io.EOF
 	}
@@ -46,7 +46,7 @@ func (f Chunk) Read(b []byte) (n int, err error) {
 }
 
 // Concurrently write to Chunk
-func (f Chunk) Write(b []byte) (n int, err error) {
+func (f *Chunk) Write(b []byte) (n int, err error) {
 	if f.CurrentPos >= f.Final {
 		return 0, io.EOF
 	}
