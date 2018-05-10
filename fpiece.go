@@ -14,13 +14,8 @@ type Chunk struct {
 }
 
 // Create Chunk
-func NewChunk(file *os.File, offset int64, length int64) Chunk {
-	chunk := Chunk{}
-	chunk.File = file
-	chunk.Start = offset
-	chunk.Final = length + offset
-	chunk.CurrentPos = offset
-	return chunk
+func NewChunk(file *os.File, offset int64, length int64) *Chunk {
+	return &Chunk{file, offset, length + offset, offset}
 }
 
 func (f *Chunk) Size() int64 {
