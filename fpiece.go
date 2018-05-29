@@ -8,10 +8,10 @@ import (
 
 // Section of data to be concurrently read
 type Chunk struct {
-	File       *os.File
-	Start      int64
-	Final      int64
-	CurrentPos int64
+	file       *os.File
+	start      int64
+	final      int64
+	currentPos int64
 }
 
 const (
@@ -26,79 +26,83 @@ func NewChunk(file *os.File, offset int64, length int64) *Chunk {
 }
 
 func (f *Chunk) Size() int64 {
-	return f.Final - f.Start
+	return f.final - f.start
+}
+
+func (f *Chunk) Close() error {
+	return f.file.Close()
 }
 
 // Concurrently read from Chunk
 func (f *Chunk) Read(b []byte) (n int, err error) {
-	if f.CurrentPos >= f.Final {
+	if f.currentPos >= f.final {
 		return 0, io.EOF
 	}
 
 	var readLen int64 = 0
-	if f.Final-f.CurrentPos > int64(len(b)) {
+	if f.final-f.currentPos > int64(len(b)) {
 		readLen = int64(len(b))
 	} else {
-		readLen = f.Final - f.CurrentPos
+		readLen = f.final - f.currentPos
 	}
 
-	n, err = f.File.ReadAt(b[:readLen], f.CurrentPos)
-	f.CurrentPos += int64(n)
+	n, err = f.file.ReadAt(b[:readLen], f.currentPos)
+	f.currentPos += int64(n)
 	return n, err
 }
 
 func (f *Chunk) ReadAt(p []byte, off int64) (n int, err error) {
-	if off < 0 || off >= f.Final-f.Start {
+	if off < 0 || off >= f.final-f.start {
 		return 0, io.EOF
 	}
 
-	off += f.Start
+	off += f.start
 
-	if max := f.Final - off; int64(len(p)) > max {
+	if max := f.final - off; int64(len(p)) > max {
 		p = p[0:max]
-		n, err = f.File.ReadAt(p, off)
+		n, err = f.file.ReadAt(p, off)
 		if err == nil {
 			err = io.EOF
 		}
 		return n, err
 	}
-	return f.File.ReadAt(p, off)
+	return f.file.ReadAt(p, off)
 }
 
 // Concurrently write to Chunk
 func (f *Chunk) Write(b []byte) (n int, err error) {
-	if f.CurrentPos >= f.Final {
+	if f.currentPos >= f.final {
 		return 0, io.EOF
 	}
 
 	var writeLen int64 = 0
-	if f.Final-f.CurrentPos > int64(len(b)) {
+	if f.final-f.currentPos > int64(len(b)) {
 		writeLen = int64(len(b))
 	} else {
-		writeLen = f.Final - f.CurrentPos
+		writeLen = f.final - f.currentPos
 	}
 
-	n, err = f.File.WriteAt(b[:writeLen], f.CurrentPos)
-	f.CurrentPos += int64(n)
+	n, err = f.file.WriteAt(b[:writeLen], f.currentPos)
+	f.currentPos += int64(n)
 	return n, err
 }
 
 func (f *Chunk) WriteAt(p []byte, off int64) (n int, err error) {
-	if off < 0 || off >= f.Final-f.Start {
+	if off < 0 || off >= f.final-f.start {
 		return 0, io.EOF
 	}
 
-	off += f.Start
+	off += f.start
 
-	if max := f.Final - off; int64(len(p)) > max {
+	if max := f.final - off; int64(len(p)) > max {
 		p = p[0:max]
-		n, err = f.File.WriteAt(p, off)
+		n, err = f.file.WriteAt(p, off)
 		if err == nil {
 			err = io.EOF
 		}
 		return n, err
 	}
-	return f.File.WriteAt(p, off)
+	return f.file.WriteAt(p, off)
 }
 
 var errWhence = errors.New("Seek: invalid whence")
@@ -109,18 +113,18 @@ func (f *Chunk) Seek(offset int64, whence int) (int64, error) {
 	default:
 		return 0, errWhence
 	case SeekStart:
-		offset += f.Start
+		offset += f.start
 	case SeekCurrent:
-		offset += f.CurrentPos
+		offset += f.currentPos
 	case SeekEnd:
-		offset += f.Final
+		offset += f.final
 	}
 
 	// Do not seek to where somewhere outside the chunk
-	if offset < f.Start || offset > f.Final {
+	if offset < f.start || offset > f.final {
 		return 0, errOffset
 	}
 
-	f.CurrentPos = offset
-	return offset - f.Start, nil
+	f.currentPos = offset
+	return offset - f.start, nil
 }
