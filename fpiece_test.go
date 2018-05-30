@@ -74,7 +74,7 @@ func TestRead(t *testing.T) {
 				log.Fatal(err)
 			}
 
-			chunk := NewChunk(tmpfilePtr, tt.offset, tt.len)
+			_, chunk := NewChunk(tmpfilePtr, tt.offset, tt.len)
 
 			buffer := make([]byte, 100)
 			n, _ := chunk.Read(buffer)
@@ -108,7 +108,7 @@ func TestReadAt(t *testing.T) {
 				log.Fatal(err)
 			}
 
-			chunk := NewChunk(tmpfilePtr, 0, int64(len(tt.in)))
+			_, chunk := NewChunk(tmpfilePtr, 0, int64(len(tt.in)))
 
 			buffer := make([]byte, 100)
 			n, _ := chunk.ReadAt(buffer, tt.offset)
@@ -138,7 +138,7 @@ func TestWrite(t *testing.T) {
 
 			defer os.Remove(tmpfilePtr.Name()) // clean up
 
-			chunk := NewChunk(tmpfilePtr, tt.offset, tt.len)
+			_, chunk := NewChunk(tmpfilePtr, tt.offset, tt.len)
 			chunk.Write([]byte(tt.in))
 
 			buffer := make([]byte, 100)
@@ -169,7 +169,7 @@ func TestWriteAt(t *testing.T) {
 
 			defer os.Remove(tmpfilePtr.Name()) // clean up
 
-			chunk := NewChunk(tmpfilePtr, 0, int64(len(tt.in)))
+			_, chunk := NewChunk(tmpfilePtr, 0, int64(len(tt.in)))
 			chunk.WriteAt([]byte(tt.in), tt.offset)
 
 			buffer := make([]byte, 100)

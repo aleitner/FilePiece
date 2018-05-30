@@ -29,7 +29,7 @@ type Chunk struct {
 ### NewChunk
 Create a chunk from a file
 ```Golang
-func NewChunk(file *os.File, offset int64, length int64) *Chunk
+func NewChunk(file *os.File, offset int64, length int64) (*Chunk, error)
 ```
 
 ### Read

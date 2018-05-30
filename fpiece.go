@@ -21,8 +21,12 @@ const (
 )
 
 // Create Chunk
-func NewChunk(file *os.File, offset int64, length int64) *Chunk {
-	return &Chunk{file, offset, length + offset, offset}
+func NewChunk(file *os.File, offset int64, length int64) (*Chunk, error) {
+	if length < 0 {
+		return nil, errors.New("Invalid Length")
+	}
+	
+	return &Chunk{file, offset, length + offset, offset}, nil
 }
 
 func (f *Chunk) Size() int64 {
